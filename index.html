@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Dog Walker App</title>
+    <!-- 
+      Это самый важный скрипт. Он обеспечивает связь между
+      вашей веб-страницей и приложением Telegram.
+    -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* Убираем все отступы и скрываем прокрутку */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            /* Используем переменные цвета из Telegram, чтобы фон
+              приложения соответствовал теме пользователя (светлой или темной).
+            */
+            background-color: var(--tg-theme-bg-color, #f4f4f4);
+        }
+
+        /* Стили для нашей собачки */
+        #dog {
+            position: absolute;
+            /* Начальное положение - центр экрана */
+            top: 50%;
+            left: 50%;
+            
+            /* Задаем размер собаки. Можете поменять на свой. */
+            width: 80px;
+            height: auto; /* Высота подстроится автоматически */
+
+            /* Плавный переход для движения и поворота.
+              Чем больше значение, тем медленнее и плавнее будет движение.
+            */
+            transition: transform 3s linear;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 
+      ЭТОТ ЭЛЕМЕНТ ОТОБРАЖАЕТ ВАШУ СОБАКУ
+      !!! ВАЖНО: Замените src на путь к вашему файлу dog.gif !!!
+      Пример для файла, лежащего рядом: src="dog.gif"
+      Пример для ссылки из интернета: src="https://example.com/mydog.gif"
+    -->
+    <img id="dog" src="dog.gif" alt="Гуляющая собака">
+
+    <script>
+        // Ждем, пока вся страница загрузится
+        window.onload = () => {
+            // Инициализируем API Telegram Web App
+            const tg = window.Telegram.WebApp;
+            tg.ready(); // Сообщаем, что приложение готово
+
+            const dog = document.getElementById('dog');
+            let currentX = window.innerWidth / 2;
+            let currentY = window.innerHeight / 2;
+
+            // Функция для перемещения собаки
+            function moveDog() {
+                // Получаем размеры видимой области экрана
+                const screenWidth = window.innerWidth;
+                const screenHeight = window.innerHeight;
+                
+                // Получаем размеры самой собаки
+                const dogWidth = dog.clientWidth;
+                const dogHeight = dog.clientHeight;
+
+                // Генерируем случайные координаты, но так, чтобы собака не ушла за экран
+                const nextX = Math.random() * (screenWidth - dogWidth);
+                const nextY = Math.random() * (screenHeight - dogHeight);
+
+                // Вычисляем угол поворота, чтобы собака "смотрела" в сторону движения
+                const deltaX = nextX - currentX;
+                const deltaY = nextY - currentY;
+                const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+
+                // Применяем новые координаты и угол поворота через CSS transform
+                // translate - двигает, rotate - поворачивает
+                dog.style.transform = `translate(${nextX - (screenWidth/2)}px, ${nextY - (screenHeight/2)}px) rotate(${angle}deg)`;
+                
+                // Сохраняем текущие координаты для следующего шага
+                currentX = nextX;
+                currentY = nextY;
+            }
+
+            // Запускаем первое движение сразу
+            moveDog();
+
+            // Устанавливаем интервал: каждые 3 секунды (3000 миллисекунд)
+            // собака будет получать новую точку для движения.
+            // Это значение совпадает с длительностью transition в CSS для плавности.
+            setInterval(moveDog, 3000);
+        };
+
+        // На случай, если пользователь меняет размер окна (например, на компьютере)
+        window.onresize = () => {
+            // Просто перезагружаем, чтобы пересчитать все размеры. Самый простой способ.
+            location.reload();
+        };
+
+    </script>
+
+</body>
+</html>
